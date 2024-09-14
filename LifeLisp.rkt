@@ -5,7 +5,7 @@
 (define (create-coordinates coord-list)
   (if (null? coord-list)
       '()
-      (cons (car coord-list) (create-coordinates (cdr coord-list)))))  ;; Recursively build the list
+      (cons (car coord-list) (create-coordinates (cdr coord-list)))))
 
 ; Add a coordinate (x, y) to the front of the list
 ; Add the coordinate pair as the new head (car) of the list
@@ -14,18 +14,15 @@
 
 ; Find a coordinate (x, y) in the list
 (define (find-coordinate lst x y)
-  (cond ((null? lst) #f)  ;; Base case: If the list is empty, return false (#f)
-        ((and (= (car (car lst)) x) (= (cadr (car lst)) y)) #t)  ;; If the coordinate matches, return true (#t)
-        (else (find-coordinate (cdr lst) x y))))  ;; Recursively search the rest of the list
+  (cond ((null? lst) #f)  ; Base case: If the list is empty, return false (#f)
+        ((and (= (car (car lst)) x) (= (cadr (car lst)) y)) #t)  ; If the coordinate matches, return true (#t)
+        (else (find-coordinate (cdr lst) x y))))  ; Recursively search the rest of the list
 
 ; Remove a coordinate (x, y) from the list
-; Base case: If the list is empty, return an empty list
-; If the coordinate matches, skip it
-; Otherwise, keep doing recursion
 (define (remove-coordinate lst x y)
-  (cond ((null? lst) '())
-        ((and (= (car (car lst)) x) (= (cadr (car lst)) y)) (cdr lst))
-        (else (cons (car lst) (remove-coordinate (cdr lst) x y)))))
+  (cond ((null? lst) '())  ; Base case: If the list is empty, return an empty list
+        ((and (= (car (car lst)) x) (= (cadr (car lst)) y)) (cdr lst))  ; If the coordinate matches, skip it
+        (else (cons (car lst) (remove-coordinate (cdr lst) x y)))))  ; Otherwise, keep doing recursion
 
 ; A list of dltas to get all neighbors
 (define neighbor-deltas
