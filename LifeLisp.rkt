@@ -1,4 +1,4 @@
-#lang sicp
+#lang racket
 
 ; Create a list of coordinates
 ; Base case: if the input list is empty, return an empty list
@@ -28,6 +28,10 @@
 (define neighbor-deltas
   '((-1 -1) (-1 0) (-1 1) ( 0 -1) ( 0 1) ( 1 -1) ( 1 0) ( 1 1)))
 
+(define (flatten-once list)
+(if (empty? list) '() 
+(append (car list) (flatten-once (cdr list)))))
+
 ; Count the number of neighbors that are alive, given a list of x, y coordinates
 ; (Use let*  over let when a parameter is used inside another parameter lower down)
 (define (count-neighbors-helper deltas cells x y count)
@@ -40,6 +44,7 @@
         (if (find-coordinate cells neighbor-x neighbor-y)                ; Check if the neighbor is alive
             (count-neighbors-helper (cdr deltas) cells x y (+ count 1))  ; If alive, increment the count
             (count-neighbors-helper (cdr deltas) cells x y count)))))    ; Otherwise, keep the count unchanged
+
 
 ; Main procedure to count live neighbors for a given (x, y) in a list of live cells
 (define (count-live-neighbors lst x y)
@@ -57,13 +62,24 @@
 ; Gets number of live neighbors, checks the cell with should-live? and adds it to checked-cells if it passed
 (define (check-cell live-cells cell checked-cells)
   (let ((neighbors (count-live-neighbors live-cells (car cell) (cadr cell))))
-    (if (should-live? live-cells cell neighbors)
-        (cons cell checked-cells)
+    (if (and (should-live? live-cells cell neighbors) (not (find-coordinate checked-cells (car cell) (cadr cell))))
+      (append checked-cells (list cell))
         checked-cells)))
+
+(define (check-all-cells-it list live checked)
+(if (empty? list) checked
+  
+   (check-all-cells-it (cdr list) live (check-cell live (car list) checked))
+)
+)
+
+(define (check-all-cells live-cells)
+(check-all-cells-it (flatten-once (map neighbors-of-cell live-cells)) live-cells '()))
+
 
 ; procedure to get all the neighboring coordinates of a given cell
 ; Uses map with a lambda to create a new list of all cells that are neighbors to the cell that was passed in
-(define (get-all-neighbor-coordinates cell)
+(define (neighbors-of-cell cell)
   (map (lambda (delta)
          (list (+ (car cell) (car delta))     ; add the delta to the x coordinate
                (+ (cadr cell) (cadr delta)))) ; add the delta to the y coordinate
@@ -73,22 +89,13 @@
 ; This was the hardest procedure to write
 ; On the last line, I added the neighbors to the middle copy of live-cells, this queues them up to be checked
 ; I then ran check-cell on the current cell to determine if it should be added to checked-cells
-(define (check-neighbors live-cells cells checked-cells)
-  (if (null? cells)            ; Base case if the list of queued up cells is empty
-      checked-cells            ; return the new list of checked cells
-      (let ((cell (car cells)) ; if it's not empty, get the next cell
-            (neighbors (get-all-neighbor-coordinates (car cells)))) ; get all neighbors of the current cell
-        (check-neighbors live-cells (append (cdr cells) neighbors) (check-cell live-cells cell checked-cells)))))
 
 ; Function to apply the Game of Life rules and get the next generation of live cells
 ; call check-neighbors with two copies of the live-cells, and an empty list for visited cells
-(define (get-next-gen live-cells)
-  (check-neighbors live-cells live-cells '()))
-
 ; Recursive function to simulate the Game of Life iterations
 (define (game-of-life live-cells iterations)
   (if (> iterations 0)
-      (let ((next-gen (get-next-gen live-cells))) ; let next-gen be 
+      (let ((next-gen (check-all-cells live-cells))) ; let next-gen be 
         (display "Live cells: ")
         (display next-gen) ; Print the live cells' coordinates
         (newline)
@@ -96,4 +103,47 @@
       (display "End of simulation.")))
 
 ; Example simulation with a glider
-(game-of-life '((2 2) (3 1) (3 2) (3 3) (2 4)) 5)
+(game-of-life '((1 2) (2 2) (3 2)) 50)
+
+
+; Tests
+; Create a linked list of coordinates
+(define coordinates (create-coordinates '((1 2) (3 4) (5 6))))
+(display coordinates)
+(display "\n")
+
+; Add a new coordinate (7, 8)
+(define coordinates2 (add-coordinate coordinates 7 8))
+(display coordinates2)
+(display "\n")
+
+; Find if the coordinate (3, 4) exists
+(display (find-coordinate coordinates2 3 4))
+(display "\n")
+
+; Remove the coordinate (3, 4)
+(define coordinates3 (remove-coordinate coordinates2 3 4))
+(display coordinates3)
+(display "\n")
+
+; Define a grid of live cells and count each of their live neighbors
+(define live-cells '((1 1) (2 2) (3 2) (3 1) (3 0)))
+(display (count-live-neighbors live-cells 2 2))
+(display "\n")
+(display (count-live-neighbors live-cells 1 1))
+(display "\n")
+(display (count-live-neighbors live-cells 3 1))
+(display "\n")
+(display (count-live-neighbors live-cells 4 4))
+(display "\n")
+(define pairs '((6 7) (8 9 (1 2))))
+
+(map neighbors-of-cell pairs)
+(display (flatten-once (list '((6 7) (8 9)) '((0 2) (2 3)))))
+(display "\n")
+(display "\n")
+(display (check-all-cells '((0 1) (0 2) (0 3))))
+(display "\n")
+(display "\n")
+(display (check-cell '((3 1) (2 1) (4 1)) '(3 1) '()))
+
