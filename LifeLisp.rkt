@@ -11,13 +11,15 @@
         ((and (= (car (car lst)) x) (= (cadr (car lst)) y)) #t)  ; If the coordinate matches, return true (#t)
         (else (find-coordinate (cdr lst) x y))))  ; Recursively search the rest of the list
 
-; A list of dltas to get all neighbors
+; A list of deltas to get all neighbors
 (define neighbor-deltas
   '((-1 -1) (-1 0) (-1 1) ( 0 -1) ( 0 1) ( 1 -1) ( 1 0) ( 1 1)))
 
+; Take the list of lists of neighbors and flatten them into a single list of coordinates
 (define (flatten-once list)
-(if (empty? list) '() 
-(append (car list) (flatten-once (cdr list)))))
+  (if (empty? list)
+    '() 
+    (append (car list) (flatten-once (cdr list)))))
 
 ; Count the number of neighbors that are alive, given a list of x, y coordinates
 ; (Use let*  over let when a parameter is used inside another parameter lower down)
@@ -31,7 +33,6 @@
         (if (find-coordinate cells neighbor-x neighbor-y)                ; Check if the neighbor is alive
             (count-neighbors-helper (cdr deltas) cells x y (+ count 1))  ; If alive, increment the count
             (count-neighbors-helper (cdr deltas) cells x y count)))))    ; Otherwise, keep the count unchanged
-
 
 ; Main procedure to count live neighbors for a given (x, y) in a list of live cells
 (define (count-live-neighbors lst x y)
@@ -53,16 +54,15 @@
       (append checked-cells (list cell))
         checked-cells)))
 
+; A helper function to check all of the cells (to see if they live) recursively
 (define (check-all-cells-it list live checked)
-(if (empty? list) checked
-  
-   (check-all-cells-it (cdr list) live (check-cell live (car list) checked))
-)
-)
+  (if (empty? list)
+    checked
+    (check-all-cells-it (cdr list) live (check-cell live (car list) checked))))
 
+; Check all of the cells to see if they shoud live
 (define (check-all-cells live-cells)
-(check-all-cells-it (flatten-once (map neighbors-of-cell live-cells)) live-cells '()))
-
+  (check-all-cells-it (flatten-once (map neighbors-of-cell live-cells)) live-cells '()))
 
 ; procedure to get all the neighboring coordinates of a given cell
 ; Uses map with a lambda to create a new list of all cells that are neighbors to the cell that was passed in
@@ -85,5 +85,5 @@
       (display "End of simulation.")))
 
 ; Example simulation with a glider
-(game-of-life '((2 3) (3 2) (4 2) (4 3) (4 4)) 50)
+(game-of-life '((2 3) (3 2) (4 2) (4 3) (4 4)) 100)
 
